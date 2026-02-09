@@ -27,14 +27,14 @@ export async function webinarRoutes(
     try {
       await changeSeatsUseCase.execute(changeSeatsCommand);
       reply.status(200).send({ message: 'Seats updated' });
-    } catch (err) {
+    } catch (err:any) {
       if (err instanceof WebinarNotFoundException) {
-        return reply.status(404).send({ error: err.message });
+        return reply.status(404).send({ message: err.message }); 
       }
       if (err instanceof WebinarNotOrganizerException) {
-        return reply.status(401).send({ error: err.message });
+        return reply.status(403).send({ message: err.message }); 
       }
-      reply.status(500).send({ error: 'An error occurred' });
+      return reply.status(400).send({ message: err.message });
     }
   });
 }
