@@ -78,4 +78,51 @@ describe('Webinar Routes E2E', () => {
           .expect(403);
       });
   });
+
+  describe('POST /webinars', () => {
+    it('should organize a webinar successfully', async () => {
+      const server = fixture.getServer();
+      const prisma = fixture.getPrismaClient();
+
+      const payload = {
+        title: 'New API Webinar',
+        seats: 100,
+        startDate: new Date('2026-01-01T10:00:00Z').toISOString(),
+        endDate: new Date('2026-01-01T12:00:00Z').toISOString(),
+      };
+
+      const response = await supertest(server)
+        .post('/webinars')
+        .send(payload)
+        .expect(201); 
+
+      
+      expect(response.body).toHaveProperty('id');
+      
+      const createdWebinar = await prisma.webinar.findUnique({
+        where: { id: response.body.id },
+      });
+      
+      expect(createdWebinar?.title).toBe('New API Webinar');
+      expect(createdWebinar?.seats).toBe(100);
+    });
+
+    it('should return 400 if webinar dates are too soon', async () => {
+      const server = fixture.getServer();
+
+      const payload = {
+        title: 'Too Soon Webinar',
+        seats: 50,
+        startDate: new Date().toISOString(), 
+        endDate: new Date().toISOString(),
+      };
+
+      const response = await supertest(server)
+        .post('/webinars')
+        .send(payload)
+        .expect(400);
+
+      expect(response.body.message).toContain('at least 3 days in advance');
+    });
+  });
 });

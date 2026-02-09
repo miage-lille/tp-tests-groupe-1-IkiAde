@@ -9,6 +9,7 @@ export async function webinarRoutes(
   container: AppContainer,
 ) {
   const changeSeatsUseCase = container.getChangeSeatsUseCase();
+  const organizeWebinarsUseCase = container.getOrganizeWebinarsUseCase();
 
   fastify.post<{
     Body: { seats: string };
@@ -27,13 +28,29 @@ export async function webinarRoutes(
     try {
       await changeSeatsUseCase.execute(changeSeatsCommand);
       reply.status(200).send({ message: 'Seats updated' });
-    } catch (err:any) {
+    } catch (err: any) {
       if (err instanceof WebinarNotFoundException) {
-        return reply.status(404).send({ message: err.message }); 
+        return reply.status(404).send({ message: err.message });
       }
       if (err instanceof WebinarNotOrganizerException) {
-        return reply.status(403).send({ message: err.message }); 
+        return reply.status(403).send({ message: err.message });
       }
+      return reply.status(400).send({ message: err.message });
+    }
+  });
+
+  fastify.post('/webinars', {}, async (request, reply) => {
+    const body = request.body as any;
+    try {
+      const result = await organizeWebinarsUseCase.execute({
+        userId: 'test-user', 
+        title: body.title,
+        seats: parseInt(body.seats, 10),
+        startDate: new Date(body.startDate),
+        endDate: new Date(body.endDate),
+      });
+      return reply.status(201).send({ id: result.id });
+    } catch (err: any) {
       return reply.status(400).send({ message: err.message });
     }
   });
