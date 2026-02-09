@@ -104,4 +104,33 @@ describe('PrismaWebinarRepository Integration Test', () => {
       expect(updated?.seats).toBe(250);
     });
   });
+
+  describe('Scenario : organize webinar persistence', () => {
+    it('should persist a new organized webinar with all its properties', async () => {
+      
+        const webinar = new Webinar({
+        id: 'bonus-webinar-id',
+        organizerId: 'bonus-organizer-id',
+        title: 'Bonus Webinar',
+        startDate: new Date('2025-12-01T10:00:00Z'),
+        endDate: new Date('2025-12-01T11:00:00Z'),
+        seats: 50,
+      });
+
+      await repository.create(webinar);
+
+      const persisted = await prismaClient.webinar.findUnique({
+        where: { id: 'bonus-webinar-id' },
+      });
+      
+      expect(persisted).toEqual({
+        id: 'bonus-webinar-id',
+        organizerId: 'bonus-organizer-id',
+        title: 'Bonus Webinar',
+        startDate: new Date('2025-12-01T10:00:00Z'),
+        endDate: new Date('2025-12-01T11:00:00Z'),
+        seats: 50,
+      });
+    });
+  });
 });
