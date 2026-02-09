@@ -36,4 +36,57 @@ describe('Feature : Change seats', () => {
       expect(updatedWebinar?.props.seats).toEqual(200);
     });
   });
+
+
+  describe('Scenario: webinar does not exist', () => {
+    const payload = {
+      user: testUser.alice,
+      webinarId: 'non-existent-id',
+      seats: 200,
+    };
+
+    it('should fail with WebinarNotFoundException', async () => {
+      await expect(useCase.execute(payload)).rejects.toThrow('Webinar not found');
+    });
+  });
+
+  describe('Scenario: user is not the organizer', () => {
+    const payload = {
+      user: testUser.bob,
+      webinarId: 'webinar-id',
+      seats: 200,
+    };
+
+    it('should fail with WebinarNotOrganizerException', async () => {
+      await expect(useCase.execute(payload)).rejects.toThrow('User is not allowed to update this webinar');
+      
+      const webinar = await webinarRepository.findById('webinar-id');
+      expect(webinar?.props.seats).toEqual(100); 
+    });
+  });
+
+  describe('Scenario: change seat to an inferior number', () => {
+    const payload = {
+      user: testUser.alice,
+      webinarId: 'webinar-id',
+      seats: 50, 
+    };
+
+    it('should fail with WebinarReduceSeatsException', async () => {
+      await expect(useCase.execute(payload)).rejects.toThrow('You cannot reduce the number of seats');
+    });
+  });
+
+  describe('Scenario: change seat to a number > 1000', () => {
+    const payload = {
+      user: testUser.alice,
+      webinarId: 'webinar-id',
+      seats: 1001,
+    };
+
+    it('should fail with WebinarTooManySeatsException', async () => {
+      await expect(useCase.execute(payload)).rejects.toThrow('Webinar must have at most 1000 seats');
+    });
+  });
+
 });
