@@ -35,7 +35,7 @@ describe('Webinar Routes E2E', () => {
 
       const response = await supertest(server)
         .post('/webinars/test-webinar/seats')
-        .send({ seats: 30 }) 
+        .send({ seats: 30 })
         .expect(200);
 
       expect(response.body).toEqual({ message: 'Seats updated' });
@@ -58,25 +58,25 @@ describe('Webinar Routes E2E', () => {
     });
 
     it('should return 403 if user is not the organizer', async () => {
-        const prisma = fixture.getPrismaClient();
-        const server = fixture.getServer();
-  
-        await prisma.webinar.create({
-          data: {
-            id: 'other-webinar',
-            title: 'Other Webinar',
-            seats: 10,
-            startDate: new Date(),
-            endDate: new Date(),
-            organizerId: 'real-organizer-id',
-          },
-        });
-  
-        await supertest(server)
-          .post('/webinars/other-webinar/seats')
-          .send({ seats: 30 })
-          .expect(403);
+      const prisma = fixture.getPrismaClient();
+      const server = fixture.getServer();
+
+      await prisma.webinar.create({
+        data: {
+          id: 'other-webinar',
+          title: 'Other Webinar',
+          seats: 10,
+          startDate: new Date(),
+          endDate: new Date(),
+          organizerId: 'real-organizer-id',
+        },
       });
+
+      await supertest(server)
+        .post('/webinars/other-webinar/seats')
+        .send({ seats: 30 })
+        .expect(403);
+    });
   });
 
   describe('POST /webinars', () => {
@@ -87,22 +87,22 @@ describe('Webinar Routes E2E', () => {
       const payload = {
         title: 'New API Webinar',
         seats: 100,
-        startDate: new Date('2026-01-01T10:00:00Z').toISOString(),
-        endDate: new Date('2026-01-01T12:00:00Z').toISOString(),
+        startDate: new Date('2027-01-01T10:00:00Z').toISOString(),
+        endDate: new Date('2027-01-01T10:00:00Z').toISOString(),
       };
 
-      const response = await supertest(server)
-        .post('/webinars')
-        .send(payload)
-        .expect(201); 
+      const response = await supertest(server).post('/webinars').send(payload);
+      if (response.status !== 201) {
+        console.log('Erreur reçue:', response.body); // Cela vous dira quel Use Case a bloqué
+      }
+      expect(response.status).toBe(201);
 
-      
       expect(response.body).toHaveProperty('id');
-      
+
       const createdWebinar = await prisma.webinar.findUnique({
         where: { id: response.body.id },
       });
-      
+
       expect(createdWebinar?.title).toBe('New API Webinar');
       expect(createdWebinar?.seats).toBe(100);
     });
@@ -113,7 +113,7 @@ describe('Webinar Routes E2E', () => {
       const payload = {
         title: 'Too Soon Webinar',
         seats: 50,
-        startDate: new Date().toISOString(), 
+        startDate: new Date().toISOString(),
         endDate: new Date().toISOString(),
       };
 
