@@ -28,10 +28,11 @@ describe('PrismaWebinarRepository Integration Test', () => {
       datasources: { db: { url: dbUrl } },
     });
 
-    await asyncExec(`DATABASE_URL=${dbUrl} npx prisma migrate deploy`);
-
+    await asyncExec(`npx prisma migrate deploy`, {
+    env: { ...process.env, DATABASE_URL: dbUrl },
+    });
     return prismaClient.$connect();
-  }, 60000); 
+  }, 90000); 
 
   afterAll(async () => {
     await container.stop({ timeout: 1000 });

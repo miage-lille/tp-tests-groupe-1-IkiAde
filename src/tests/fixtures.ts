@@ -27,8 +27,9 @@ export class TestServerFixture {
       datasources: { db: { url: dbUrl } },
     });
 
-    await asyncExec(`DATABASE_URL=${dbUrl} npx prisma migrate deploy`);
-    await this.prismaClient.$connect();
+    await asyncExec(`npx prisma migrate deploy`, {
+    env: { ...process.env, DATABASE_URL: dbUrl },
+    });    await this.prismaClient.$connect();
 
     this.appContainer = new AppContainer();
     this.appContainer.init(this.prismaClient);
